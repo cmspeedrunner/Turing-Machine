@@ -1,32 +1,51 @@
 import random
-tape = []
-# Initalise the tape
-for i in range(99999):
-    tape.append((random.randint(0,1)))
+import readline
+
+tape = [random.choices([0, 1])[0] for _ in range(99999)]
 pos = 0
+history = []
+hist_pos = 0
+
 while True:
     try:
-        reader = input("\u001b[35mREADER>\u001b[0m")
+        reader = input("\033[35mREADER>\033[0m")
+        if reader.strip():
+            history.append(reader)
+            hist_pos = len(history)
     except KeyboardInterrupt:
-        print("\n[^C]utting Tape...")
-        exit()
-    reader = list(reader)
+        exit("\n[^C]utting Tape...")
+
+    if reader == "":
+        if len(history) > 0:
+            reader = history[hist_pos-1]
+        else:
+            continue
+
+    if reader == "\x1b[A":  # up arrow key
+        if hist_pos > 0:
+            hist_pos -= 1
+        reader = history[hist_pos] if hist_pos < len(history) else ""
+    elif reader == "\x1b[B":  # down arrow key
+        if hist_pos < len(history):
+            hist_pos += 1
+        reader = history[hist_pos] if hist_pos < len(history) else ""
+
     for i, item in enumerate(reader):
         if item == "<":
             oldpos = pos
-            pos = pos-1
+            pos -= 1
             if pos < 0:
-                print("\u001b[31mUFE: UNDERFLOW ERROR IN \"<\" FUNC\u001b[0m")
-                exit()
+                exit("\033[31mUFE: UNDERFLOW ERROR IN \"<\" FUNC\033[0m")
             else:
-                print("JUMPED FROM: \u001b[31m"+str(oldpos)+"\u001b[0m\nTO: \u001b[36m"+str(pos)+"\u001b[0m")
+                print("JUMPED FROM: \033[31m"+str(oldpos)+"\033[0m\nTO: \033[36m"+str(pos)+"\033[0m")
         if item == ">":
             oldpos = pos
-            pos = pos+1
-            print("JUMPED FROM: \u001b[31m"+str(oldpos)+"\u001b[0m\nTO: \u001b[36m"+str(pos)+"\u001b[0m")
+            pos += 1
+            print("JUMPED FROM: \033[31m"+str(oldpos)+"\033[0m\nTO: \033[36m"+str(pos)+"\033[0m")
         if item == "r":
-            print("VALUE: \u001b[32m"+str(tape[pos])+"\u001b[0m\nM-ADDRESS:\u001b[36m"+str(pos)+"\u001b[0m")
+            print("VALUE: \033[32m"+str(tape[pos])+"\033[0m\nM-ADDRESS:\033[36m"+str(pos)+"\033[0m")
         if item == "w":
-            tape[pos] = reader[i+1]        
+            if not (i+1 >= len(reader)) and reader[i+1].isdigit() and int(reader[i+1]) in [0, 1]:
+                tape[pos] = int(reader[i+1])
         if item == "t":
-            print(tape)    
+            print(tape)
